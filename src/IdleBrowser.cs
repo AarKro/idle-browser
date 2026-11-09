@@ -1,4 +1,4 @@
-// Overlay Browser - an always-on-top, resizable, see-through browser window
+// Idle Browser - an always-on-top, resizable, see-through browser window
 // meant to sit over a game running in borderless/windowed-fullscreen mode.
 //
 //   Ctrl+B        show / hide (does not steal keyboard focus from the game)
@@ -17,7 +17,7 @@ using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
-namespace OverlayBrowser
+namespace IdleBrowser
 {
     static class Program
     {
@@ -25,13 +25,13 @@ namespace OverlayBrowser
         [DllImport("user32.dll")] static extern bool PostMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int RegisterWindowMessage(string name);
 
-        public static readonly int ShowMessage = RegisterWindowMessage("OverlayBrowser.Show");
+        public static readonly int ShowMessage = RegisterWindowMessage("IdleBrowser.Show");
 
         [STAThread]
         static void Main()
         {
             bool created;
-            using (var mutex = new Mutex(true, "OverlayBrowser.SingleInstance", out created))
+            using (var mutex = new Mutex(true, "IdleBrowser.SingleInstance", out created))
             {
                 if (!created)
                 {
@@ -42,12 +42,12 @@ namespace OverlayBrowser
                 SetProcessDPIAware();
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new OverlayForm());
+                Application.Run(new IdleBrowserForm());
             }
         }
     }
 
-    class OverlayForm : Form
+    class IdleBrowserForm : Form
     {
         // ---- Win32 -------------------------------------------------------
         const int WM_HOTKEY = 0x0312, WM_NCHITTEST = 0x0084, WM_NCLBUTTONDOWN = 0x00A1;
@@ -85,7 +85,7 @@ namespace OverlayBrowser
 
         // ---- State -------------------------------------------------------
         readonly string dataDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OverlayBrowser");
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "IdleBrowser");
         string SettingsPath { get { return Path.Combine(dataDir, "settings.ini"); } }
 
         string homeUrl = "https://www.youtube.com";
@@ -108,12 +108,20 @@ namespace OverlayBrowser
         NotifyIcon tray;
         ToolStripMenuItem trayGhost;
 
-        public OverlayForm()
+        public IdleBrowserForm()
         {
             using (var g = Graphics.FromHwnd(IntPtr.Zero)) scale = g.DpiX / 96f;
+            // Carry settings and logins over from the app's old name.
+            string oldDataDir = Path.Combine(Path.GetDirectoryName(dataDir), "OverlayBrowser");
+            if (Directory.Exists(oldDataDir) && !Directory.Exists(dataDir))
+            {
+                try { Directory.Move(oldDataDir, dataDir); }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            }
             Directory.CreateDirectory(dataDir);
 
-            Text = "Overlay Browser";
+            Text = "Idle Browser";
             Icon = MakeIcon();
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
@@ -264,7 +272,7 @@ namespace OverlayBrowser
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Exit", null, (s, e) => { reallyExit = true; Close(); });
 
-            tray = new NotifyIcon { Icon = Icon, Text = "Overlay Browser", ContextMenuStrip = menu, Visible = true };
+            tray = new NotifyIcon { Icon = Icon, Text = "Idle Browser", ContextMenuStrip = menu, Visible = true };
             tray.MouseClick += (s, e) => { if (e.Button == MouseButtons.Left) ToggleOverlay(false); };
         }
 
@@ -303,7 +311,7 @@ namespace OverlayBrowser
             bool ok = RegisterHotKey(Handle, HOTKEY_TOGGLE, MOD_CONTROL | MOD_NOREPEAT, (uint)Keys.B);
             ok &= RegisterHotKey(Handle, HOTKEY_GHOST, MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, (uint)Keys.B);
             if (!ok)
-                BeginInvoke(new Action(() => tray.ShowBalloonTip(5000, "Overlay Browser",
+                BeginInvoke(new Action(() => tray.ShowBalloonTip(5000, "Idle Browser",
                     "Ctrl+B / Ctrl+Shift+B is already used by another program. Use the tray icon instead.", ToolTipIcon.Warning)));
         }
 
@@ -460,7 +468,7 @@ namespace OverlayBrowser
             catch (Exception ex)
             {
                 MessageBox.Show("Could not start the browser engine (Microsoft Edge WebView2).\n\n" + ex.Message,
-                    "Overlay Browser", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "Idle Browser", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -469,7 +477,7 @@ namespace OverlayBrowser
             core.HistoryChanged += (s, e) => { backBtn.Enabled = core.CanGoBack; forwardBtn.Enabled = core.CanGoForward; };
             core.DocumentTitleChanged += (s, e) =>
             {
-                string t = "Overlay Browser - " + core.DocumentTitle;
+                string t = "Idle Browser - " + core.DocumentTitle;
                 tray.Text = t.Length > 63 ? t.Substring(0, 60) + "..." : t;
             };
             // Keep popups / target=_blank links inside the overlay.

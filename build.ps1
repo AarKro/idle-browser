@@ -1,4 +1,4 @@
-﻿# Builds bin\OverlayBrowser.exe using the C# compiler built into Windows.
+# Builds bin\IdleBrowser.exe using the C# compiler built into Windows.
 # Only download: the Microsoft WebView2 SDK package from nuget.org (first build only).
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
@@ -32,9 +32,9 @@ Copy-Item $core, $winforms, (Join-Path $pkg 'WebView2Loader.dll') $bin -Force
 
 $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 & $csc /nologo /target:winexe /platform:x64 /optimize+ /codepage:65001 `
-    "/out:$bin\OverlayBrowser.exe" `
+    "/out:$bin\IdleBrowser.exe" `
     /r:System.Windows.Forms.dll /r:System.Drawing.dll `
     "/r:$core" "/r:$winforms" `
-    (Join-Path $root 'src\OverlayBrowser.cs')
+    (Join-Path $root 'src\IdleBrowser.cs')
 if ($LASTEXITCODE -ne 0) { throw "Build failed" }
-Write-Host "Built $bin\OverlayBrowser.exe"
+Write-Host "Built $bin\IdleBrowser.exe"

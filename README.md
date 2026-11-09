@@ -1,4 +1,4 @@
-# Overlay Browser
+# Idle Browser
 
 An always-on-top browser window for gaming downtime. Run it, then play your game in
 **Windowed (Fullscreen)** / borderless mode — exclusive fullscreen hides all overlays.
@@ -15,7 +15,7 @@ An always-on-top browser window for gaming downtime. Run it, then play your game
 | Tray icon | Left-click show/hide; right-click for reset position and **Exit** |
 
 ✕ and Alt+F4 only hide it — quit from the tray icon.
-Position, size, opacity and last page are remembered in `%LOCALAPPDATA%\OverlayBrowser`
+Position, size, opacity and last page are remembered in `%LOCALAPPDATA%\IdleBrowser`
 (logins/cookies too).
 
 ## Build
@@ -25,4 +25,4 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 ```
 
 Uses the C# compiler that ships with Windows; the first build downloads the WebView2 SDK
-from nuget.org. Output: `bin\OverlayBrowser.exe` (keep the three DLLs next to it).
+from nuget.org. Output: `bin\IdleBrowser.exe` (keep the three DLLs next to it).
